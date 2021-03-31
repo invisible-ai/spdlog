@@ -14,6 +14,7 @@
 
 #include <chrono>
 #include <cstdio>
+#include <iostream>
 #include <ctime>
 #include <mutex>
 #include <string>
@@ -32,7 +33,8 @@ struct daily_filename_calculator
         filename_t basename, ext;
         std::tie(basename, ext) = details::file_helper::split_by_extension(filename);
         return fmt::format(
-            SPDLOG_FILENAME_T("{}_{:04d}-{:02d}-{:02d}{}"), basename, now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday, ext);
+            SPDLOG_FILENAME_T("{}_{:04d}-{:02d}-{:02d}-{:02d}-{:02d}-{:02d}{}"), basename, now_tm.tm_year + 1900,
+                             now_tm.tm_mon + 1, now_tm.tm_mday, now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ext);
     }
 };
 
@@ -61,6 +63,7 @@ public:
 
         auto now = log_clock::now();
         auto filename = FileNameCalc::calc_filename(base_filename_, now_tm(now));
+        std::cout << "File name->: " << filename <<  ", now_tm(now): " << now_tm(now).tm_min << std::endl;
         file_helper_.open(filename, truncate_);
         rotation_tp_ = next_rotation_tp_();
 
@@ -81,8 +84,11 @@ protected:
     {
         auto time = msg.time;
         bool should_rotate = time >= rotation_tp_;
+        // std::cout << "Should rotate State: " << time << " - " << rotation_tp_ << std::endl;
+
         if (should_rotate)
         {
+            std::cout << "Should rotate: " << should_rotate << std::endl;
             auto filename = FileNameCalc::calc_filename(base_filename_, now_tm(time));
             file_helper_.open(filename, truncate_);
             rotation_tp_ = next_rotation_tp_();
@@ -145,7 +151,7 @@ private:
         {
             return rotation_time;
         }
-        return {rotation_time + std::chrono::hours(24)};
+        return {rotation_time + std::chrono::seconds(1000)};
     }
 
     // Delete the file N rotations ago.

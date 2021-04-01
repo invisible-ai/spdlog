@@ -63,7 +63,6 @@ public:
 
         auto now = log_clock::now();
         auto filename = FileNameCalc::calc_filename(base_filename_, now_tm(now));
-        std::cout << "File name->: " << filename <<  ", now_tm(now): " << now_tm(now).tm_min << std::endl;
         file_helper_.open(filename, truncate_);
         rotation_tp_ = next_rotation_tp_();
 
@@ -84,11 +83,8 @@ protected:
     {
         auto time = msg.time;
         bool should_rotate = time >= rotation_tp_;
-        // std::cout << "Should rotate State: " << time << " - " << rotation_tp_ << std::endl;
-
         if (should_rotate)
         {
-            std::cout << "Should rotate: " << should_rotate << std::endl;
             auto filename = FileNameCalc::calc_filename(base_filename_, now_tm(time));
             file_helper_.open(filename, truncate_);
             rotation_tp_ = next_rotation_tp_();
